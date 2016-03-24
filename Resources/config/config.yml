@@ -1,9 +1,23 @@
+# This file is part of the Sylius package.
+# (c) Paweł Jędrzejewski
+
+jms_serializer:
+    metadata:
+        directories:
+            sylius-order:
+                namespace_prefix: "Sylius\\Component\\Order"
+                path: "@SyliusOrderBundle/Resources/config/serializer"
+
+sylius_sequence:
+    generators:
+        "%sylius.model.order.class%": sylius.sequence.sequential_number_generator
+
 winzou_state_machine:
     sylius_order:
-        class: %sylius.model.order.class%
+        class: "%sylius.model.order.class%"
         property_path: state
         graph: sylius_order
-        state_machine_class: %sylius.state_machine.class%
+        state_machine_class: "%sylius.state_machine.class%"
         states:
             cart: ~
             cart_locked: ~
@@ -44,5 +58,11 @@ winzou_state_machine:
                 to: returned
         callbacks:
             after:
-                sylius_complete: { on: 'create', do: [@sylius.callback.complete_order,           'completeOrder'], args: ['object'] }
-                sylius_number: { on: 'create', do: [@sylius.sequence.doctrine_number_listener, 'enableEntity'],  args: ['object'] }
+                sylius_complete:
+                    on: "create"
+                    do: ["@sylius.callback.complete_order", "completeOrder"]
+                    args: ["object"]
+                sylius_number:
+                    on: "create"
+                    do: ["@sylius.sequence.doctrine_number_listener", "enableEntity"]
+                    args: ["object"]
