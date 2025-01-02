@@ -102,7 +102,7 @@ class OrderController extends ResourceController
         }
 
         if ($form->isSubmitted() && !$form->isValid()) {
-            $this->resetChangesOnCart($resource);
+            $this->getCartResetter()->resetChanges($resource);
             $this->addFlash('error', 'sylius.cart.not_recalculated');
         }
 
@@ -130,16 +130,58 @@ class OrderController extends ResourceController
         $flashBag->add($type, $message);
     }
 
-    private function resetChangesOnCart(OrderInterface $cart): void
+    public function clearAction(Request $request): Response
     {
-        if (!$this->manager->contains($cart)) {
-            return;
+        $configuration = $this->requestConfigurationFactory->create($this->metadata, $request);
+
+        $this->isGrantedOr403($configuration, ResourceActions::DELETE);
+        $resource = $this->getCurrentCart();
+
+        if ($configuration->isCsrfProtectionEnabled() && !$this->isCsrfTokenValid((string) $resource->getId(), $this->getParameterFromRequest($request, '_csrf_token'))) {
+            throw new HttpException(Response::HTTP_FORBIDDEN, 'Invalid csrf token.');
         }
 
-        $this->manager->refresh($cart);
-        foreach ($cart->getItems() as $item) {
-            $this->manager->refresh($item);
+        $event = $this->eventDispatcher->dispatchPreEvent(ResourceActions::DELETE, $configuration, $resource);
+
+        if ($event->isStopped() && !$configuration->isHtmlRequest()) {
+            throw new HttpException($event->getErrorCode(), $event->getMessage());
         }
+        if ($event->isStopped()) {
+            $this->flashHelper->addFlashFromEvent($configuration, $event);
+
+            return $this->redirectHandler->redirectToIndex($configuration, $resource);
+        }
+
+        $this->repository->remove($resource);
+        $this->eventDispatcher->dispatchPostEvent(ResourceActions::DELETE, $configuration, $resource);
+
+        if (!$configuration->isHtmlRequest()) {
+            return $this->viewHandler->handle($configuration, View::create(null, Response::HTTP_NO_CONTENT));
+        }
+
+        $this->flashHelper->addSuccessFlash($configuration, ResourceActions::DELETE, $resource);
+
+        return $this->redirectHandler->redirectToIndex($configuration, $resource);
+    }
+
+    protected function redirectToCartSummary(RequestConfiguration $configuration): Response
+    {
+        trigger_deprecation(
+            'sylius/order-bundle',
+            '1.13',
+            'The %s::redirectToCartSummary() method is deprecated and will be removed in Sylius 2.0.',
+            self::class,
+        );
+        if (null === $configuration->getParameters()->get('redirect')) {
+            return $this->redirectHandler->redirectToRoute($configuration, $this->getCartSummaryRoute());
+        }
+
+        return $this->redirectHandler->redirectToRoute($configuration, $configuration->getParameters()->get('redirect'));
+    }
+
+    protected function getCartSummaryRoute(): string
+    {
+        return 'sylius_cart_summary';
     }
 
     protected function getCurrentCart(): OrderInterface
@@ -155,6 +197,11 @@ class OrderController extends ResourceController
     protected function getOrderRepository(): OrderRepositoryInterface
     {
         return $this->get('sylius.repository.order');
+    }
+
+    protected function getCartResetter(): CartChangesResetterInterface
+    {
+        return $this->get('sylius.cart_changes_resetter');
     }
 
     protected function getEventDispatcher(): EventDispatcherInterface

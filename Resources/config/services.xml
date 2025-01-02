@@ -77,5 +77,10 @@
 
         <service id="sylius.factory.add_to_cart_command" class="Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactory" />
         <service id="Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactoryInterface" alias="sylius.factory.add_to_cart_command" />
+
+        <service id="sylius.cart_changes_resetter" class="Sylius\Bundle\OrderBundle\ChangesResetter\CartChangesResetter">
+            <argument type="service" id="sylius.manager.order" />
+        </service>
+        <service id="Sylius\Bundle\OrderBundle\ChangesResetter\CartChangesResetterInterface" alias="sylius.cart_changes_resetter" />
     </services>
 </container>
