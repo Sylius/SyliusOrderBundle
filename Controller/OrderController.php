@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Sylius\Bundle\OrderBundle\Controller;
 
 use FOS\RestBundle\View\View;
-use Sylius\Bundle\OrderBundle\ChangesResetter\CartChangesResetterInterface;
+use Sylius\Bundle\OrderBundle\Resetter\CartChangesResetterInterface;
 use Sylius\Bundle\ResourceBundle\Controller\RequestConfiguration;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -222,7 +222,7 @@ class OrderController extends ResourceController
 
     protected function getCartResetter(): CartChangesResetterInterface
     {
-        return $this->get('sylius.cart_changes_resetter');
+        return $this->get('sylius.resetter.cart_changes');
     }
 
     protected function getEventDispatcher(): EventDispatcherInterface

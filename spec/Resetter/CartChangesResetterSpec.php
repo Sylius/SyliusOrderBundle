@@ -18,7 +18,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
 use PhpSpec\ObjectBehavior;
-use Sylius\Bundle\OrderBundle\ChangesResetter\CartChangesResetter;
+use Sylius\Bundle\OrderBundle\Resetter\CartChangesResetter;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Model\OrderItemInterface;
 use Sylius\Component\Order\Model\OrderItemUnitInterface;
@@ -71,6 +71,4 @@ final class CartChangesResetterSpec extends ObjectBehavior
 
         $this->resetChanges($cart);
     }
-
-
 }
