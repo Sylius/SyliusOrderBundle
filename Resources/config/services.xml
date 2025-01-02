@@ -86,5 +86,10 @@
         <service id="sylius.remover.expired_carts" alias="sylius.expired_carts_remover" />
 
         <service id="sylius.factory.add_to_cart_command" class="Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactory" />
+
+        <service id="sylius.resetter.cart_changes" class="Sylius\Bundle\OrderBundle\Resetter\CartChangesResetter">
+            <argument type="service" id="sylius.manager.order" />
+        </service>
+        <service id="Sylius\Bundle\OrderBundle\Resetter\CartChangesResetterInterface" alias="sylius.resetter.cart_changes" />
     </services>
 </container>

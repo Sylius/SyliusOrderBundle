@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\Bundle\OrderBundle\Controller;
 
 use FOS\RestBundle\View\View;
+use Sylius\Bundle\OrderBundle\Resetter\CartChangesResetterInterface;
 use Sylius\Bundle\ResourceBundle\Controller\RequestConfiguration;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -122,7 +123,7 @@ class OrderController extends ResourceController
         }
 
         if ($form->isSubmitted() && !$form->isValid()) {
-            $this->resetChangesOnCart($resource);
+            $this->getCartResetter()->resetChanges($resource);
             $this->addFlash('error', 'sylius.cart.not_recalculated');
         }
 
@@ -148,18 +149,6 @@ class OrderController extends ResourceController
         /** @var FlashBagInterface $flashBag */
         $flashBag = $session->getBag('flashes');
         $flashBag->add($type, $message);
-    }
-
-    private function resetChangesOnCart(OrderInterface $cart): void
-    {
-        if (!$this->manager->contains($cart)) {
-            return;
-        }
-
-        $this->manager->refresh($cart);
-        foreach ($cart->getItems() as $item) {
-            $this->manager->refresh($item);
-        }
     }
 
     public function clearAction(Request $request): Response
@@ -229,6 +218,11 @@ class OrderController extends ResourceController
     protected function getOrderRepository(): OrderRepositoryInterface
     {
         return $this->get('sylius.repository.order');
+    }
+
+    protected function getCartResetter(): CartChangesResetterInterface
+    {
+        return $this->get('sylius.resetter.cart_changes');
     }
 
     protected function getEventDispatcher(): EventDispatcherInterface
