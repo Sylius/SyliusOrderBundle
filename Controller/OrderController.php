@@ -201,7 +201,7 @@ class OrderController extends ResourceController
 
     protected function getCartResetter(): CartChangesResetterInterface
     {
-        return $this->get('sylius.cart_changes_resetter');
+        return $this->get('sylius.resetter.cart_changes');
     }
 
     protected function getEventDispatcher(): EventDispatcherInterface

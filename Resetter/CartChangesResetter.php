@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Sylius\Bundle\OrderBundle\ChangesResetter;
+namespace Sylius\Bundle\OrderBundle\Resetter;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
