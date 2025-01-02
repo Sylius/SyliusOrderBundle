@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\Bundle\OrderBundle\Controller;
 
+use Sylius\Bundle\OrderBundle\Resetter\CartChangesResetterInterface;
 use Sylius\Bundle\ResourceBundle\Controller\ResourceController;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Sylius\Component\Order\Model\OrderInterface;
@@ -128,60 +129,6 @@ class OrderController extends ResourceController
         /** @var FlashBagInterface $flashBag */
         $flashBag = $session->getBag('flashes');
         $flashBag->add($type, $message);
-    }
-
-    public function clearAction(Request $request): Response
-    {
-        $configuration = $this->requestConfigurationFactory->create($this->metadata, $request);
-
-        $this->isGrantedOr403($configuration, ResourceActions::DELETE);
-        $resource = $this->getCurrentCart();
-
-        if ($configuration->isCsrfProtectionEnabled() && !$this->isCsrfTokenValid((string) $resource->getId(), $this->getParameterFromRequest($request, '_csrf_token'))) {
-            throw new HttpException(Response::HTTP_FORBIDDEN, 'Invalid csrf token.');
-        }
-
-        $event = $this->eventDispatcher->dispatchPreEvent(ResourceActions::DELETE, $configuration, $resource);
-
-        if ($event->isStopped() && !$configuration->isHtmlRequest()) {
-            throw new HttpException($event->getErrorCode(), $event->getMessage());
-        }
-        if ($event->isStopped()) {
-            $this->flashHelper->addFlashFromEvent($configuration, $event);
-
-            return $this->redirectHandler->redirectToIndex($configuration, $resource);
-        }
-
-        $this->repository->remove($resource);
-        $this->eventDispatcher->dispatchPostEvent(ResourceActions::DELETE, $configuration, $resource);
-
-        if (!$configuration->isHtmlRequest()) {
-            return $this->viewHandler->handle($configuration, View::create(null, Response::HTTP_NO_CONTENT));
-        }
-
-        $this->flashHelper->addSuccessFlash($configuration, ResourceActions::DELETE, $resource);
-
-        return $this->redirectHandler->redirectToIndex($configuration, $resource);
-    }
-
-    protected function redirectToCartSummary(RequestConfiguration $configuration): Response
-    {
-        trigger_deprecation(
-            'sylius/order-bundle',
-            '1.13',
-            'The %s::redirectToCartSummary() method is deprecated and will be removed in Sylius 2.0.',
-            self::class,
-        );
-        if (null === $configuration->getParameters()->get('redirect')) {
-            return $this->redirectHandler->redirectToRoute($configuration, $this->getCartSummaryRoute());
-        }
-
-        return $this->redirectHandler->redirectToRoute($configuration, $configuration->getParameters()->get('redirect'));
-    }
-
-    protected function getCartSummaryRoute(): string
-    {
-        return 'sylius_cart_summary';
     }
 
     protected function getCurrentCart(): OrderInterface
