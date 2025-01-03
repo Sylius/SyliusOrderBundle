@@ -37,7 +37,7 @@ final class CartChangesResetterSpec extends ObjectBehavior
 
     function it_does_nothing_if_cart_is_not_managed(
         EntityManagerInterface $manager,
-        OrderInterface $cart
+        OrderInterface $cart,
     ): void {
         $manager->contains($cart)->willReturn(false);
 
@@ -53,7 +53,7 @@ final class CartChangesResetterSpec extends ObjectBehavior
         OrderItemInterface $item,
         OrderItemUnitInterface $unitNew,
         OrderItemUnitInterface $unitExisting,
-        Collection $itemsCollection
+        Collection $itemsCollection,
     ): void {
         $manager->contains($cart)->willReturn(true);
         $manager->getUnitOfWork()->willReturn($unitOfWork);
