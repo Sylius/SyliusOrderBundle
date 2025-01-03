@@ -78,7 +78,7 @@
         <service id="sylius.factory.add_to_cart_command" class="Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactory" />
         <service id="Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactoryInterface" alias="sylius.factory.add_to_cart_command" />
 
-        <service id="sylius.resetter.cart_changes" class="Sylius\Bundle\OrderBundle\Resetter\CartChangesResetter">
+        <service id="sylius.resetter.cart_changes" class="Sylius\Bundle\OrderBundle\Resetter\CartChangesResetter" public="true">
             <argument type="service" id="sylius.manager.order" />
         </service>
         <service id="Sylius\Bundle\OrderBundle\Resetter\CartChangesResetterInterface" alias="sylius.resetter.cart_changes" />
