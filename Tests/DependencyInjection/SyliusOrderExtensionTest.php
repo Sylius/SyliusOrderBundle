@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\Definition;
 
 final class SyliusOrderExtensionTest extends AbstractExtensionTestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_autoconfigures_cart_context_with_attribute(): void
     {
         $this->container->setDefinition(
@@ -43,7 +43,7 @@ final class SyliusOrderExtensionTest extends AbstractExtensionTestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_autoconfigures_order_processors_with_attribute(): void
     {
         $this->container->setDefinition(

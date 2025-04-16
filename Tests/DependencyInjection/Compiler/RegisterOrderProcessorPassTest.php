@@ -25,9 +25,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class RegisterOrderProcessorPassTest extends AbstractCompilerPassTestCase
 {
-    /**
-     * @test
-     */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_adds_method_call_to_composite_order_processor_if_exist(): void
     {
         $compositeOrderProcessorDefinition = new Definition(CompositeOrderProcessor::class);
@@ -50,9 +48,7 @@ final class RegisterOrderProcessorPassTest extends AbstractCompilerPassTestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_adds_method_call_to_composite_order_processor_with_custom_priority(): void
     {
         $compositeOrderProcessorDefinition = new Definition(CompositeOrderProcessor::class);
@@ -75,9 +71,7 @@ final class RegisterOrderProcessorPassTest extends AbstractCompilerPassTestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_does_not_add_method_call_if_there_are_no_tagged_processors(): void
     {
         $compositeOrderProcessorDefinition = new Definition(CompositeOrderProcessor::class);
