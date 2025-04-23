@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Sylius\Bundle\OrderBundle\Tests\DependencyInjection\Compiler;
 
-use PHPUnit\Framework\Attributes\Test;
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractCompilerPassTestCase;
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\DefinitionHasMethodCallConstraint;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Sylius\Bundle\OrderBundle\DependencyInjection\Compiler\RegisterProcessorsPass;
 use Sylius\Component\Order\Processor\CompositeOrderProcessor;
