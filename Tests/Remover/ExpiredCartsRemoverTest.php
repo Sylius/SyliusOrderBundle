@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\Bundle\OrderBundle\Remover;
 
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
-use Sylius\Bundle\OrderBundle\Remover\ExpiredCartsRemover;
 use Doctrine\Persistence\ObjectManager;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Sylius\Bundle\OrderBundle\Remover\ExpiredCartsRemover;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Remover\ExpiredCartsRemoverInterface;
 use Sylius\Component\Order\Repository\OrderRepositoryInterface;
@@ -24,19 +24,17 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 final class ExpiredCartsRemoverTest extends TestCase
 {
-    /**
-     * @var OrderRepositoryInterface|MockObject
-     */
+    /** @var OrderRepositoryInterface&MockObject */
     private MockObject $orderRepositoryMock;
-    /**
-     * @var ObjectManager|MockObject
-     */
+
+    /** @var ObjectManager&MockObject */
     private MockObject $orderManagerMock;
-    /**
-     * @var EventDispatcher|MockObject
-     */
+
+    /** @var EventDispatcher&MockObject */
     private MockObject $eventDispatcherMock;
+
     private ExpiredCartsRemover $expiredCartsRemover;
+
     protected function setUp(): void
     {
         $this->orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
@@ -52,14 +50,13 @@ final class ExpiredCartsRemoverTest extends TestCase
 
     public function testRemovesACartWhichHasBeenUpdatedBeforeConfiguredDate(): void
     {
-        /** @var OrderInterface|MockObject $firstCartMock */
+        /** @var OrderInterface&MockObject $firstCartMock */
         $firstCartMock = $this->createMock(OrderInterface::class);
-        /** @var OrderInterface|MockObject $secondCartMock */
+        /** @var OrderInterface&MockObject $secondCartMock */
         $secondCartMock = $this->createMock(OrderInterface::class);
-        $this->orderRepositoryMock->expects($this->once())->method('findCartsNotModifiedSince')->with($this->isType('\DateTimeInterface'), 100)->willReturn(
-            [$firstCartMock, $secondCartMock],
-            [],
-        );
+        $this->orderRepositoryMock->expects($this->once())
+            ->method('findCartsNotModifiedSince')
+            ->with($this->isInstanceOf(\DateTimeInterface::class), 100);
         $this->eventDispatcherMock->expects($this->once())->method('dispatch')
         ;
         $this->orderManagerMock->expects($this->once())->method('remove')->with($firstCartMock)->shouldBeCalledOnce();
@@ -73,9 +70,9 @@ final class ExpiredCartsRemoverTest extends TestCase
 
     public function testRemovesCartsInBatches(): void
     {
-        /** @var OrderInterface|MockObject $cartMock */
+        /** @var OrderInterface&MockObject $cartMock */
         $cartMock = $this->createMock(OrderInterface::class);
-        $this->orderRepositoryMock->expects($this->once())->method('findCartsNotModifiedSince')->with($this->isType('\DateTimeInterface'), 100)
+        $this->orderRepositoryMock->expects($this->once())->method('findCartsNotModifiedSince')->with($this->isInstanceOf('\DateTimeInterface'), 100)
             ->willReturn(
                 array_fill(0, 100, $cartMock),
                 array_fill(0, 100, $cartMock),

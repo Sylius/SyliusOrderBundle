@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\Bundle\OrderBundle\Resetter;
 
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Sylius\Bundle\OrderBundle\Resetter\CartChangesResetter;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Model\OrderItemInterface;
@@ -26,11 +26,11 @@ use Sylius\Component\Order\Model\OrderItemUnitInterface;
 
 final class CartChangesResetterTest extends TestCase
 {
-    /**
-     * @var EntityManagerInterface|MockObject
-     */
+    /** @var EntityManagerInterface&MockObject */
     private MockObject $managerMock;
+
     private CartChangesResetter $cartChangesResetter;
+
     protected function setUp(): void
     {
         $this->managerMock = $this->createMock(EntityManagerInterface::class);
@@ -39,7 +39,7 @@ final class CartChangesResetterTest extends TestCase
 
     public function testDoesNothingIfCartIsNotManaged(): void
     {
-        /** @var OrderInterface|MockObject $cartMock */
+        /** @var OrderInterface&MockObject $cartMock */
         $cartMock = $this->createMock(OrderInterface::class);
         $this->managerMock->expects($this->once())->method('contains')->with($cartMock)->willReturn(false);
         $this->managerMock->expects($this->never())->method('refresh')->with($cartMock);
@@ -48,17 +48,17 @@ final class CartChangesResetterTest extends TestCase
 
     public function testResetsChangesForCartItemsAndUnits(): void
     {
-        /** @var UnitOfWork|MockObject $unitOfWorkMock */
+        /** @var UnitOfWork&MockObject $unitOfWorkMock */
         $unitOfWorkMock = $this->createMock(UnitOfWork::class);
-        /** @var OrderInterface|MockObject $cartMock */
+        /** @var OrderInterface&MockObject $cartMock */
         $cartMock = $this->createMock(OrderInterface::class);
-        /** @var OrderItemInterface|MockObject $itemMock */
+        /** @var OrderItemInterface&MockObject $itemMock */
         $itemMock = $this->createMock(OrderItemInterface::class);
-        /** @var OrderItemUnitInterface|MockObject $unitNewMock */
+        /** @var OrderItemUnitInterface&MockObject $unitNewMock */
         $unitNewMock = $this->createMock(OrderItemUnitInterface::class);
-        /** @var OrderItemUnitInterface|MockObject $unitExistingMock */
+        /** @var OrderItemUnitInterface&MockObject $unitExistingMock */
         $unitExistingMock = $this->createMock(OrderItemUnitInterface::class);
-        /** @var Collection|MockObject $itemsCollectionMock */
+        /** @var Collection&MockObject $itemsCollectionMock */
         $itemsCollectionMock = $this->createMock(Collection::class);
         $this->managerMock->expects($this->once())->method('contains')->with($cartMock)->willReturn(true);
         $this->managerMock->expects($this->once())->method('getUnitOfWork')->willReturn($unitOfWorkMock);

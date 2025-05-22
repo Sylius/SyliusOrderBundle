@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\Bundle\OrderBundle\Factory;
 
-use PHPUnit\Framework\TestCase;
-use Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactory;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Sylius\Bundle\OrderBundle\Controller\AddToCartCommand;
+use Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactory;
 use Sylius\Bundle\OrderBundle\Factory\AddToCartCommandFactoryInterface;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Model\OrderItemInterface;
@@ -24,10 +24,12 @@ use Sylius\Component\Order\Model\OrderItemInterface;
 final class AddToCartCommandFactoryTest extends TestCase
 {
     private AddToCartCommandFactory $addToCartCommandFactory;
+
     protected function setUp(): void
     {
         $this->addToCartCommandFactory = new AddToCartCommandFactory();
     }
+
     public function testAddToCartCommandFactory(): void
     {
         $this->assertInstanceOf(AddToCartCommandFactoryInterface::class, $this->addToCartCommandFactory);
@@ -35,10 +37,15 @@ final class AddToCartCommandFactoryTest extends TestCase
 
     public function testCreatesAddToCartCommandWithCartAndCartItem(): void
     {
-        /** @var OrderInterface|MockObject $cartMock */
+        /** @var OrderInterface&MockObject $cartMock */
         $cartMock = $this->createMock(OrderInterface::class);
-        /** @var OrderItemInterface|MockObject $cartItemMock */
+        /** @var OrderItemInterface&MockObject $cartItemMock */
         $cartItemMock = $this->createMock(OrderItemInterface::class);
-        $this->addToCartCommandFactory->expects($this->once())->method('createWithCartAndCartItem')->with($cartMock, $cartItemMock)->shouldBeLike(new AddToCartCommand($cartMock, $cartItemMock));
+
+        $command = $this->addToCartCommandFactory->createWithCartAndCartItem($cartMock, $cartItemMock);
+
+        $this->assertInstanceOf(AddToCartCommand::class, $command);
+        $this->assertSame($cartMock, $command->getCart());
+        $this->assertSame($cartItemMock, $command->getCartItem());
     }
 }

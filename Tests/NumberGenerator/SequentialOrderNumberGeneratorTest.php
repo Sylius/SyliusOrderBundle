@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\Bundle\OrderBundle\NumberGenerator;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use Sylius\Bundle\OrderBundle\NumberGenerator\SequentialOrderNumberGenerator;
+use PHPUnit\Framework\TestCase;
 use Sylius\Bundle\OrderBundle\NumberGenerator\OrderNumberGeneratorInterface;
+use Sylius\Bundle\OrderBundle\NumberGenerator\SequentialOrderNumberGenerator;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Model\OrderSequenceInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
@@ -24,15 +24,14 @@ use Sylius\Resource\Factory\FactoryInterface;
 
 final class SequentialOrderNumberGeneratorTest extends TestCase
 {
-    /**
-     * @var RepositoryInterface|MockObject
-     */
+    /** @var RepositoryInterface&MockObject */
     private MockObject $sequenceRepositoryMock;
-    /**
-     * @var FactoryInterface|MockObject
-     */
+
+    /** @var FactoryInterface&MockObject */
     private MockObject $sequenceFactoryMock;
+
     private SequentialOrderNumberGenerator $sequentialOrderNumberGenerator;
+
     protected function setUp(): void
     {
         $this->sequenceRepositoryMock = $this->createMock(RepositoryInterface::class);
@@ -47,9 +46,9 @@ final class SequentialOrderNumberGeneratorTest extends TestCase
 
     public function testGeneratesAnOrderNumber(): void
     {
-        /** @var OrderSequenceInterface|MockObject $sequenceMock */
+        /** @var OrderSequenceInterface&MockObject $sequenceMock */
         $sequenceMock = $this->createMock(OrderSequenceInterface::class);
-        /** @var OrderInterface|MockObject $orderMock */
+        /** @var OrderInterface&MockObject $orderMock */
         $orderMock = $this->createMock(OrderInterface::class);
         $sequenceMock->expects($this->once())->method('getIndex')->willReturn(6);
         $this->sequenceRepositoryMock->expects($this->once())->method('findOneBy')->with([])->willReturn($sequenceMock);
@@ -59,9 +58,9 @@ final class SequentialOrderNumberGeneratorTest extends TestCase
 
     public function testGeneratesAnOrderNumberWhenSequenceIsNull(): void
     {
-        /** @var OrderSequenceInterface|MockObject $sequenceMock */
+        /** @var OrderSequenceInterface&MockObject $sequenceMock */
         $sequenceMock = $this->createMock(OrderSequenceInterface::class);
-        /** @var OrderInterface|MockObject $orderMock */
+        /** @var OrderInterface&MockObject $orderMock */
         $orderMock = $this->createMock(OrderInterface::class);
         $sequenceMock->expects($this->once())->method('getIndex')->willReturn(0);
         $this->sequenceRepositoryMock->expects($this->once())->method('findOneBy')->with([])->willReturn(null);

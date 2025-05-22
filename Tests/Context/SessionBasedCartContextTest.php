@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\Bundle\OrderBundle\Context;
 
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Sylius\Bundle\OrderBundle\Context\SessionBasedCartContext;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Sylius\Component\Order\Context\CartNotFoundException;
@@ -24,15 +24,14 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 final class SessionBasedCartContextTest extends TestCase
 {
-    /**
-     * @var SessionInterface|MockObject
-     */
+    /** @var SessionInterface&MockObject */
     private MockObject $sessionMock;
-    /**
-     * @var OrderRepositoryInterface|MockObject
-     */
+
+    /** @var OrderRepositoryInterface&MockObject */
     private MockObject $orderRepositoryMock;
+
     private SessionBasedCartContext $sessionBasedCartContext;
+
     protected function setUp(): void
     {
         $this->sessionMock = $this->createMock(SessionInterface::class);
