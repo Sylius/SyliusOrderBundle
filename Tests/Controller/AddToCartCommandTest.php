@@ -23,32 +23,33 @@ use Sylius\Component\Order\Model\OrderItemInterface;
 final class AddToCartCommandTest extends TestCase
 {
     /** @var OrderInterface&MockObject */
-    private MockObject $orderMock;
+    private OrderInterface $order;
 
     /** @var OrderItemInterface&MockObject */
-    private MockObject $orderItemMock;
+    private OrderItemInterface $orderItem;
 
     private AddToCartCommand $addToCartCommand;
 
     protected function setUp(): void
     {
-        $this->orderMock = $this->createMock(OrderInterface::class);
-        $this->orderItemMock = $this->createMock(OrderItemInterface::class);
-        $this->addToCartCommand = new AddToCartCommand($this->orderMock, $this->orderItemMock);
+        parent::setUp();
+        $this->order = $this->createMock(OrderInterface::class);
+        $this->orderItem = $this->createMock(OrderItemInterface::class);
+        $this->addToCartCommand = new AddToCartCommand($this->order, $this->orderItem);
     }
 
     public function testAddCartItemCommand(): void
     {
-        $this->assertInstanceOf(AddToCartCommandInterface::class, $this->addToCartCommand);
+        self::assertInstanceOf(AddToCartCommandInterface::class, $this->addToCartCommand);
     }
 
     public function testHasOrder(): void
     {
-        $this->assertSame($this->orderMock, $this->addToCartCommand->getCart());
+        self::assertSame($this->order, $this->addToCartCommand->getCart());
     }
 
     public function testHasOrderItem(): void
     {
-        $this->assertSame($this->orderItemMock, $this->addToCartCommand->getCartItem());
+        self::assertSame($this->orderItem, $this->addToCartCommand->getCartItem());
     }
 }

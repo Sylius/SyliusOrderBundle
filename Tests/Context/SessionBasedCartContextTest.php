@@ -25,49 +25,88 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 final class SessionBasedCartContextTest extends TestCase
 {
     /** @var SessionInterface&MockObject */
-    private MockObject $sessionMock;
+    private SessionInterface $session;
 
     /** @var OrderRepositoryInterface&MockObject */
-    private MockObject $orderRepositoryMock;
+    private OrderRepositoryInterface $orderRepository;
 
     private SessionBasedCartContext $sessionBasedCartContext;
 
     protected function setUp(): void
     {
-        $this->sessionMock = $this->createMock(SessionInterface::class);
-        $this->orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
-        $this->sessionBasedCartContext = new SessionBasedCartContext($this->sessionMock, 'session_key_name', $this->orderRepositoryMock);
+        parent::setUp();
+        $this->session = $this->createMock(SessionInterface::class);
+        $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
+        $this->sessionBasedCartContext = new SessionBasedCartContext(
+            $this->session,
+            'session_key_name',
+            $this->orderRepository,
+        );
     }
 
     public function testImplementsACartContextInterface(): void
     {
-        $this->assertInstanceOf(CartContextInterface::class, $this->sessionBasedCartContext);
+        self::assertInstanceOf(CartContextInterface::class, $this->sessionBasedCartContext);
     }
 
     public function testReturnsACartBasedOnIdStoredInSession(): void
     {
-        /** @var OrderInterface|MockObject $cartMock */
-        $cartMock = $this->createMock(OrderInterface::class);
-        $this->sessionMock->expects($this->once())->method('has')->with('session_key_name')->willReturn(true);
-        $this->sessionMock->expects($this->once())->method('get')->with('session_key_name')->willReturn(12345);
-        $this->orderRepositoryMock->expects($this->once())->method('findCartById')->with(12345)->willReturn($cartMock);
-        $this->assertSame($cartMock, $this->sessionBasedCartContext->getCart());
+        /** @var OrderInterface&MockObject $cart */
+        $cart = $this->createMock(OrderInterface::class);
+
+        $this->session->expects(self::once())
+            ->method('has')
+            ->with('session_key_name')
+            ->willReturn(true);
+
+        $this->session->expects(self::once())
+            ->method('get')
+            ->with('session_key_name')
+            ->willReturn(12345);
+
+        $this->orderRepository->expects(self::once())
+            ->method('findCartById')
+            ->with(12345)->willReturn($cart);
+
+        $this->assertSame($cart, $this->sessionBasedCartContext->getCart());
     }
 
     public function testThrowsACartNotFoundExceptionIfSessionKeyDoesNotExist(): void
     {
-        $this->sessionMock->expects($this->once())->method('has')->with('session_key_name')->willReturn(false);
-        $this->expectException(CartNotFoundException::class);
+        $this->session->expects(self::once())
+            ->method('has')
+            ->with('session_key_name')
+            ->willReturn(false);
+
+        self::expectException(CartNotFoundException::class);
+
         $this->sessionBasedCartContext->getCart();
     }
 
     public function testThrowsACartNotFoundExceptionAndRemovesIdFromSessionWhenCartIsNotFound(): void
     {
-        $this->sessionMock->expects($this->once())->method('has')->with('session_key_name')->willReturn(true);
-        $this->sessionMock->expects($this->once())->method('get')->with('session_key_name')->willReturn(12345);
-        $this->orderRepositoryMock->expects($this->once())->method('findCartById')->with(12345)->willReturn(null);
-        $this->sessionMock->expects($this->once())->method('remove')->with('session_key_name')->willReturn(null);
-        $this->expectException(CartNotFoundException::class);
+        $this->session->expects(self::once())
+            ->method('has')
+            ->with('session_key_name')
+            ->willReturn(true);
+
+        $this->session->expects(self::once())
+            ->method('get')
+            ->with('session_key_name')
+            ->willReturn(12345);
+
+        $this->orderRepository->expects(self::once())
+            ->method('findCartById')
+            ->with(12345)
+            ->willReturn(null);
+
+        $this->session->expects(self::once())
+            ->method('remove')
+            ->with('session_key_name')
+            ->willReturn(null);
+
+        self::expectException(CartNotFoundException::class);
+
         $this->sessionBasedCartContext->getCart();
     }
 }

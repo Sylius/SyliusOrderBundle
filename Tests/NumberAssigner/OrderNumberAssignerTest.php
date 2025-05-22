@@ -23,38 +23,51 @@ use Sylius\Component\Order\Model\OrderInterface;
 final class OrderNumberAssignerTest extends TestCase
 {
     /** @var OrderNumberGeneratorInterface&MockObject */
-    private MockObject $numberGeneratorMock;
+    private OrderNumberGeneratorInterface $numberGenerator;
 
     private OrderNumberAssigner $orderNumberAssigner;
 
+    /** @var OrderInterface&MockObject */
+    private OrderInterface $order;
+
     protected function setUp(): void
     {
-        $this->numberGeneratorMock = $this->createMock(OrderNumberGeneratorInterface::class);
-        $this->orderNumberAssigner = new OrderNumberAssigner($this->numberGeneratorMock);
+        parent::setUp();
+        $this->numberGenerator = $this->createMock(OrderNumberGeneratorInterface::class);
+        $this->orderNumberAssigner = new OrderNumberAssigner($this->numberGenerator);
+        $this->order = $this->createMock(OrderInterface::class);
     }
 
     public function testImplementsAnOrderNumberAssignerInterface(): void
     {
-        $this->assertInstanceOf(OrderNumberAssignerInterface::class, $this->orderNumberAssigner);
+        self::assertInstanceOf(OrderNumberAssignerInterface::class, $this->orderNumberAssigner);
     }
 
     public function testAssignsANumberToAnOrder(): void
     {
-        /** @var OrderInterface&MockObject $orderMock */
-        $orderMock = $this->createMock(OrderInterface::class);
-        $orderMock->expects($this->once())->method('getNumber')->willReturn(null);
-        $this->numberGeneratorMock->expects($this->once())->method('generate')->with($orderMock)->willReturn('00000007');
-        $orderMock->expects($this->once())->method('setNumber')->with('00000007');
-        $this->orderNumberAssigner->assignNumber($orderMock);
+        $this->order->expects(self::once())
+            ->method('getNumber')
+            ->willReturn(null);
+
+        $this->numberGenerator
+            ->expects(self::once())
+            ->method('generate')
+            ->with($this->order)
+            ->willReturn('00000007');
+
+        $this->order->expects(self::once())->method('setNumber')->with('00000007');
+
+        $this->orderNumberAssigner->assignNumber($this->order);
     }
 
     public function testDoesNotAssignANumberToAnOrderWithNumber(): void
     {
-        /** @var OrderInterface&MockObject $orderMock */
-        $orderMock = $this->createMock(OrderInterface::class);
-        $orderMock->expects($this->once())->method('getNumber')->willReturn('00000007');
-        $this->numberGeneratorMock->expects($this->never())->method('generate')->with($orderMock);
-        $orderMock->expects($this->never())->method('setNumber');
-        $this->orderNumberAssigner->assignNumber($orderMock);
+        $this->order->expects(self::once())->method('getNumber')->willReturn('00000007');
+
+        $this->numberGenerator->expects(self::never())->method('generate')->with($this->order);
+
+        $this->order->expects(self::never())->method('setNumber');
+
+        $this->orderNumberAssigner->assignNumber($this->order);
     }
 }

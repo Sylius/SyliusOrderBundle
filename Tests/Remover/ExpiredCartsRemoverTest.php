@@ -25,69 +25,89 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 final class ExpiredCartsRemoverTest extends TestCase
 {
     /** @var OrderRepositoryInterface&MockObject */
-    private MockObject $orderRepositoryMock;
+    private OrderRepositoryInterface $orderRepository;
 
     /** @var ObjectManager&MockObject */
-    private MockObject $orderManagerMock;
+    private ObjectManager $objectManager;
 
     /** @var EventDispatcher&MockObject */
-    private MockObject $eventDispatcherMock;
+    private EventDispatcher $eventDispatcher;
 
     private ExpiredCartsRemover $expiredCartsRemover;
 
     protected function setUp(): void
     {
-        $this->orderRepositoryMock = $this->createMock(OrderRepositoryInterface::class);
-        $this->orderManagerMock = $this->createMock(ObjectManager::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcher::class);
-        $this->expiredCartsRemover = new ExpiredCartsRemover($this->orderRepositoryMock, $this->orderManagerMock, $this->eventDispatcherMock, '2 months');
+        parent::setUp();
+        $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
+        $this->objectManager = $this->createMock(ObjectManager::class);
+        $this->eventDispatcher = $this->createMock(EventDispatcher::class);
+        $this->expiredCartsRemover = new ExpiredCartsRemover(
+            $this->orderRepository,
+            $this->objectManager,
+            $this->eventDispatcher,
+            '2 months',
+        );
     }
 
     public function testImplementsAnExpiredCartsRemoverInterface(): void
     {
-        $this->assertInstanceOf(ExpiredCartsRemoverInterface::class, $this->expiredCartsRemover);
+        self::assertInstanceOf(ExpiredCartsRemoverInterface::class, $this->expiredCartsRemover);
     }
 
     public function testRemovesACartWhichHasBeenUpdatedBeforeConfiguredDate(): void
     {
-        /** @var OrderInterface&MockObject $firstCartMock */
-        $firstCartMock = $this->createMock(OrderInterface::class);
-        /** @var OrderInterface&MockObject $secondCartMock */
-        $secondCartMock = $this->createMock(OrderInterface::class);
-        $this->orderRepositoryMock->expects($this->once())
+        $cart1 = $this->createMock(OrderInterface::class);
+        $cart2 = $this->createMock(OrderInterface::class);
+
+        $this->orderRepository->expects(self::once())
             ->method('findCartsNotModifiedSince')
-            ->with($this->isInstanceOf(\DateTimeInterface::class), 100);
-        $this->eventDispatcherMock->expects($this->once())->method('dispatch')
-        ;
-        $this->orderManagerMock->expects($this->once())->method('remove')->with($firstCartMock)->shouldBeCalledOnce();
-        $this->orderManagerMock->expects($this->once())->method('remove')->with($secondCartMock)->shouldBeCalledOnce();
-        $this->orderManagerMock->expects($this->once())->method('flush')->shouldBeCalledOnce();
-        $this->orderManagerMock->expects($this->once())->method('clear')->shouldBeCalledOnce();
-        $this->eventDispatcherMock->expects($this->once())->method('dispatch')
-        ;
+            ->with($this->isInstanceOf('DateTimeInterface'), 100)
+            ->willReturn([$cart1, $cart2]);
+
+        $removedCarts = [];
+
+        $this->objectManager->expects(self::exactly(2))
+            ->method('remove')
+            ->with($this->callback(function ($cart) use ($cart1, $cart2, &$removedCarts) {
+                $removedCarts[] = $cart;
+
+                return in_array($cart, [$cart1, $cart2], true);
+            }));
+
+        $this->objectManager->expects(self::once())->method('flush');
+        $this->objectManager->expects(self::once())->method('clear');
+
         $this->expiredCartsRemover->remove();
+
+        self::assertSame([$cart1, $cart2], $removedCarts);
     }
 
     public function testRemovesCartsInBatches(): void
     {
-        /** @var OrderInterface&MockObject $cartMock */
-        $cartMock = $this->createMock(OrderInterface::class);
-        $this->orderRepositoryMock->expects($this->once())->method('findCartsNotModifiedSince')->with($this->isInstanceOf('\DateTimeInterface'), 100)
+        /** @var OrderInterface&MockObject $cart */
+        $cart = $this->createMock(OrderInterface::class);
+
+        $this->orderRepository->expects(self::once())
+            ->method('findCartsNotModifiedSince')
+            ->with($this->isInstanceOf('DateTimeInterface'), 100)
             ->willReturn(
-                array_fill(0, 100, $cartMock),
-                array_fill(0, 100, $cartMock),
+                array_fill(0, 100, $cart),
+                array_fill(0, 100, $cart),
                 [],
             )
         ;
-        $this->eventDispatcherMock->expects($this->once())->method('dispatch')
-            ->shouldBeCalledTimes(2)
-        ;
-        $this->orderManagerMock->expects($this->once())->method('remove')->with($this->isInstanceOf(OrderInterface::class))->shouldBeCalledTimes(200);
-        $this->orderManagerMock->expects($this->once())->method('flush')->shouldBeCalledTimes(2);
-        $this->orderManagerMock->expects($this->once())->method('clear')->shouldBeCalledTimes(2);
-        $this->eventDispatcherMock->expects($this->once())->method('dispatch')
-            ->shouldBeCalledTimes(2)
-        ;
+        $this->eventDispatcher->expects(self::exactly(2))->method('dispatch');
+
+        $this->objectManager->expects(self::exactly(200))
+            ->method('remove')
+            ->with($this->isInstanceOf(OrderInterface::class));
+
+        $this->objectManager->expects(self::exactly(2))->method('flush');
+
+        $this->objectManager->expects(self::exactly(2))->method('clear');
+
+        $this->eventDispatcher->expects(self::exactly(2))->method('dispatch');
+
         $this->expiredCartsRemover->remove();
     }
 }

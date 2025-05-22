@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Tests\Sylius\Bundle\OrderBundle\Resetter;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -27,47 +26,77 @@ use Sylius\Component\Order\Model\OrderItemUnitInterface;
 final class CartChangesResetterTest extends TestCase
 {
     /** @var EntityManagerInterface&MockObject */
-    private MockObject $managerMock;
+    private EntityManagerInterface $managerMock;
 
     private CartChangesResetter $cartChangesResetter;
 
+    /** @var OrderInterface&MockObject */
+    private OrderInterface $cart;
+
     protected function setUp(): void
     {
+        parent::setUp();
         $this->managerMock = $this->createMock(EntityManagerInterface::class);
         $this->cartChangesResetter = new CartChangesResetter($this->managerMock);
+        $this->cart = $this->createMock(OrderInterface::class);
     }
 
     public function testDoesNothingIfCartIsNotManaged(): void
     {
-        /** @var OrderInterface&MockObject $cartMock */
-        $cartMock = $this->createMock(OrderInterface::class);
-        $this->managerMock->expects($this->once())->method('contains')->with($cartMock)->willReturn(false);
-        $this->managerMock->expects($this->never())->method('refresh')->with($cartMock);
-        $this->cartChangesResetter->resetChanges($cartMock);
+        $this->managerMock->expects(self::once())
+            ->method('contains')
+            ->with($this->cart)
+            ->willReturn(false);
+
+        $this->managerMock->expects(self::never())->method('refresh')->with($this->cart);
+
+        $this->cartChangesResetter->resetChanges($this->cart);
     }
 
     public function testResetsChangesForCartItemsAndUnits(): void
     {
-        /** @var UnitOfWork&MockObject $unitOfWorkMock */
-        $unitOfWorkMock = $this->createMock(UnitOfWork::class);
-        /** @var OrderInterface&MockObject $cartMock */
-        $cartMock = $this->createMock(OrderInterface::class);
-        /** @var OrderItemInterface&MockObject $itemMock */
-        $itemMock = $this->createMock(OrderItemInterface::class);
-        /** @var OrderItemUnitInterface&MockObject $unitNewMock */
-        $unitNewMock = $this->createMock(OrderItemUnitInterface::class);
-        /** @var OrderItemUnitInterface&MockObject $unitExistingMock */
-        $unitExistingMock = $this->createMock(OrderItemUnitInterface::class);
-        /** @var Collection&MockObject $itemsCollectionMock */
-        $itemsCollectionMock = $this->createMock(Collection::class);
-        $this->managerMock->expects($this->once())->method('contains')->with($cartMock)->willReturn(true);
-        $this->managerMock->expects($this->once())->method('getUnitOfWork')->willReturn($unitOfWorkMock);
-        $cartMock->expects($this->once())->method('getItems')->willReturn(new ArrayCollection([$itemMock]));
-        $itemMock->expects($this->once())->method('getUnits')->willReturn(new ArrayCollection([$unitNewMock, $unitExistingMock]));
-        $unitOfWorkMock->expects($this->exactly(2))->method('getEntityState')->willReturnMap([[$unitNewMock, UnitOfWork::STATE_NEW], [$unitExistingMock, UnitOfWork::STATE_MANAGED]]);
-        $itemMock->expects($this->once())->method('removeUnit')->with($unitNewMock);
-        $this->managerMock->expects($this->once())->method('refresh')->with($itemMock);
-        $this->managerMock->expects($this->once())->method('refresh')->with($cartMock);
-        $this->cartChangesResetter->resetChanges($cartMock);
+        $cart = $this->createMock(OrderInterface::class);
+        $item = $this->createMock(OrderItemInterface::class);
+        $unitNew = $this->createMock(OrderItemUnitInterface::class);
+        $unitExisting = $this->createMock(OrderItemUnitInterface::class);
+        $unitOfWork = $this->createMock(UnitOfWork::class);
+
+        $this->managerMock
+            ->method('contains')
+            ->with($cart)
+            ->willReturn(true);
+
+        $this->managerMock
+            ->method('getUnitOfWork')
+            ->willReturn($unitOfWork);
+
+        $cart
+            ->method('getItems')
+            ->willReturn(new ArrayCollection([$item]));
+
+        $item
+            ->method('getUnits')
+            ->willReturn(new ArrayCollection([$unitNew, $unitExisting]));
+
+        $unitOfWork
+            ->method('getEntityState')
+            ->willReturnMap([
+                [$unitNew, UnitOfWork::STATE_NEW],
+                [$unitExisting, UnitOfWork::STATE_MANAGED],
+            ]);
+
+        $item
+            ->expects(self::once())
+            ->method('removeUnit')
+            ->with($unitNew);
+
+        $this->managerMock
+            ->expects(self::exactly(2))
+            ->method('refresh')
+            ->with($this->callback(function ($object) use ($item, $cart) {
+                return $object === $item || $object === $cart;
+            }));
+
+        $this->cartChangesResetter->resetChanges($cart);
     }
 }

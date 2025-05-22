@@ -27,25 +27,26 @@ final class AddToCartCommandFactoryTest extends TestCase
 
     protected function setUp(): void
     {
+        parent::setUp();
         $this->addToCartCommandFactory = new AddToCartCommandFactory();
     }
 
     public function testAddToCartCommandFactory(): void
     {
-        $this->assertInstanceOf(AddToCartCommandFactoryInterface::class, $this->addToCartCommandFactory);
+        self::assertInstanceOf(AddToCartCommandFactoryInterface::class, $this->addToCartCommandFactory);
     }
 
     public function testCreatesAddToCartCommandWithCartAndCartItem(): void
     {
-        /** @var OrderInterface&MockObject $cartMock */
-        $cartMock = $this->createMock(OrderInterface::class);
-        /** @var OrderItemInterface&MockObject $cartItemMock */
-        $cartItemMock = $this->createMock(OrderItemInterface::class);
+        /** @var OrderInterface&MockObject $cart */
+        $cart = $this->createMock(OrderInterface::class);
+        /** @var OrderItemInterface&MockObject $cartItem */
+        $cartItem = $this->createMock(OrderItemInterface::class);
 
-        $command = $this->addToCartCommandFactory->createWithCartAndCartItem($cartMock, $cartItemMock);
+        $command = $this->addToCartCommandFactory->createWithCartAndCartItem($cart, $cartItem);
 
-        $this->assertInstanceOf(AddToCartCommand::class, $command);
-        $this->assertSame($cartMock, $command->getCart());
-        $this->assertSame($cartItemMock, $command->getCartItem());
+        self::assertInstanceOf(AddToCartCommand::class, $command);
+        self::assertSame($cart, $command->getCart());
+        self::assertSame($cartItem, $command->getCartItem());
     }
 }

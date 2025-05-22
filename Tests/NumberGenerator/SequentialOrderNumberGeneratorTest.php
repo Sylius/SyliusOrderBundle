@@ -19,54 +19,72 @@ use Sylius\Bundle\OrderBundle\NumberGenerator\OrderNumberGeneratorInterface;
 use Sylius\Bundle\OrderBundle\NumberGenerator\SequentialOrderNumberGenerator;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Model\OrderSequenceInterface;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;  // Update the import
 use Sylius\Resource\Factory\FactoryInterface;
 
 final class SequentialOrderNumberGeneratorTest extends TestCase
 {
-    /** @var RepositoryInterface&MockObject */
-    private MockObject $sequenceRepositoryMock;
+    /** @var RepositoryInterface<OrderSequenceInterface>&MockObject */
+    private RepositoryInterface $sequenceRepository;
 
     /** @var FactoryInterface&MockObject */
-    private MockObject $sequenceFactoryMock;
+    private FactoryInterface $sequenceFactory;
 
     private SequentialOrderNumberGenerator $sequentialOrderNumberGenerator;
 
+    /** @var OrderSequenceInterface&MockObject */
+    private OrderSequenceInterface $sequence;
+
+    /** @var OrderInterface&MockObject */
+    private OrderInterface $order;
+
     protected function setUp(): void
     {
-        $this->sequenceRepositoryMock = $this->createMock(RepositoryInterface::class);
-        $this->sequenceFactoryMock = $this->createMock(FactoryInterface::class);
-        $this->sequentialOrderNumberGenerator = new SequentialOrderNumberGenerator($this->sequenceRepositoryMock, $this->sequenceFactoryMock);
+        parent::setUp();
+        $this->sequenceRepository = $this->createMock(RepositoryInterface::class);
+        $this->sequenceFactory = $this->createMock(FactoryInterface::class);
+        $this->sequentialOrderNumberGenerator = new SequentialOrderNumberGenerator(
+            $this->sequenceRepository,
+            $this->sequenceFactory,
+        );
+        $this->sequence = $this->createMock(OrderSequenceInterface::class);
+        $this->order = $this->createMock(OrderInterface::class);
     }
 
     public function testImplementsAnOrderNumberGeneratorInterface(): void
     {
-        $this->assertInstanceOf(OrderNumberGeneratorInterface::class, $this->sequentialOrderNumberGenerator);
+        self::assertInstanceOf(OrderNumberGeneratorInterface::class, $this->sequentialOrderNumberGenerator);
     }
 
     public function testGeneratesAnOrderNumber(): void
     {
-        /** @var OrderSequenceInterface&MockObject $sequenceMock */
-        $sequenceMock = $this->createMock(OrderSequenceInterface::class);
-        /** @var OrderInterface&MockObject $orderMock */
-        $orderMock = $this->createMock(OrderInterface::class);
-        $sequenceMock->expects($this->once())->method('getIndex')->willReturn(6);
-        $this->sequenceRepositoryMock->expects($this->once())->method('findOneBy')->with([])->willReturn($sequenceMock);
-        $sequenceMock->expects($this->once())->method('incrementIndex');
-        $this->assertSame('000000007', $this->sequentialOrderNumberGenerator->generate($orderMock));
+        $this->sequence->expects(self::once())->method('getIndex')->willReturn(6);
+
+        $this->sequenceRepository->expects(self::once())
+            ->method('findOneBy')
+            ->with([])
+            ->willReturn($this->sequence);
+
+        $this->sequence->expects(self::once())->method('incrementIndex');
+
+        self::assertSame('000000007', $this->sequentialOrderNumberGenerator->generate($this->order));
     }
 
     public function testGeneratesAnOrderNumberWhenSequenceIsNull(): void
     {
-        /** @var OrderSequenceInterface&MockObject $sequenceMock */
-        $sequenceMock = $this->createMock(OrderSequenceInterface::class);
-        /** @var OrderInterface&MockObject $orderMock */
-        $orderMock = $this->createMock(OrderInterface::class);
-        $sequenceMock->expects($this->once())->method('getIndex')->willReturn(0);
-        $this->sequenceRepositoryMock->expects($this->once())->method('findOneBy')->with([])->willReturn(null);
-        $this->sequenceFactoryMock->expects($this->once())->method('createNew')->willReturn($sequenceMock);
-        $this->sequenceRepositoryMock->expects($this->once())->method('add')->with($sequenceMock);
-        $sequenceMock->expects($this->once())->method('incrementIndex');
-        $this->assertSame('000000001', $this->sequentialOrderNumberGenerator->generate($orderMock));
+        $this->sequence->expects(self::once())->method('getIndex')->willReturn(0);
+
+        $this->sequenceRepository->expects(self::once())
+            ->method('findOneBy')
+            ->with([])
+            ->willReturn(null);
+
+        $this->sequenceFactory->expects(self::once())->method('createNew')->willReturn($this->sequence);
+
+        $this->sequenceRepository->expects(self::once())->method('add')->with($this->sequence);
+
+        $this->sequence->expects(self::once())->method('incrementIndex');
+
+        self::assertSame('000000001', $this->sequentialOrderNumberGenerator->generate($this->order));
     }
 }

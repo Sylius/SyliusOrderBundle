@@ -25,33 +25,39 @@ use Symfony\Component\Form\FormInterface;
 final class OrderItemQuantityDataMapperTest extends TestCase
 {
     /** @var OrderItemQuantityModifierInterface&MockObject */
-    private MockObject $orderItemQuantityModifierMock;
+    private OrderItemQuantityModifierInterface $orderItemQuantityModifier;
 
     /** @var DataMapperInterface&MockObject */
-    private MockObject $propertyPathDataMapperMock;
+    private DataMapperInterface $propertyPathDataMapper;
 
     private OrderItemQuantityDataMapper $orderItemQuantityDataMapper;
 
     protected function setUp(): void
     {
-        $this->orderItemQuantityModifierMock = $this->createMock(OrderItemQuantityModifierInterface::class);
-        $this->propertyPathDataMapperMock = $this->createMock(DataMapperInterface::class);
-        $this->orderItemQuantityDataMapper = new OrderItemQuantityDataMapper($this->orderItemQuantityModifierMock, $this->propertyPathDataMapperMock);
+        parent::setUp();
+        $this->orderItemQuantityModifier = $this->createMock(OrderItemQuantityModifierInterface::class);
+        $this->propertyPathDataMapper = $this->createMock(DataMapperInterface::class);
+        $this->orderItemQuantityDataMapper = new OrderItemQuantityDataMapper($this->orderItemQuantityModifier, $this->propertyPathDataMapper);
     }
 
     public function testImplementsADataMapperInterface(): void
     {
-        $this->assertInstanceOf(DataMapperInterface::class, $this->orderItemQuantityDataMapper);
+        self::assertInstanceOf(DataMapperInterface::class, $this->orderItemQuantityDataMapper);
     }
 
     public function testUsesAPropertyPathDataMapperWhileMappingDataToForms(): void
     {
-        /** @var FormInterface&MockObject $formMock */
-        $formMock = $this->createMock(FormInterface::class);
-        /** @var OrderItemInterface&MockObject $orderItemMock */
-        $orderItemMock = $this->createMock(OrderItemInterface::class);
-        $forms = new ArrayIterator([$formMock]);
-        $this->propertyPathDataMapperMock->expects($this->once())->method('mapDataToForms')->with($orderItemMock, $forms);
-        $this->orderItemQuantityDataMapper->mapDataToForms($orderItemMock, $forms);
+        /** @var FormInterface&MockObject $form */
+        $form = $this->createMock(FormInterface::class);
+        /** @var OrderItemInterface&MockObject $orderItem */
+        $orderItem = $this->createMock(OrderItemInterface::class);
+
+        $forms = new ArrayIterator([$form]);
+
+        $this->propertyPathDataMapper->expects(self::once())
+            ->method('mapDataToForms')
+            ->with($orderItem, $forms);
+
+        $this->orderItemQuantityDataMapper->mapDataToForms($orderItem, $forms);
     }
 }
