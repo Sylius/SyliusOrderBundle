@@ -25,13 +25,11 @@ use Sylius\Component\Order\Model\OrderItemUnitInterface;
 
 final class CartChangesResetterTest extends TestCase
 {
-    /** @var EntityManagerInterface&MockObject */
-    private EntityManagerInterface $managerMock;
+    private EntityManagerInterface&MockObject $managerMock;
 
     private CartChangesResetter $cartChangesResetter;
 
-    /** @var OrderInterface&MockObject */
-    private OrderInterface $cart;
+    private OrderInterface&MockObject $cart;
 
     protected function setUp(): void
     {
