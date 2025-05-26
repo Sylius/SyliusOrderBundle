@@ -83,14 +83,11 @@ final class CartChangesResetterTest extends TestCase
             ->expects(self::exactly(2))
             ->method('getEntityState')
             ->willReturnCallback(function ($unit) use ($unitNew, $unitExisting) {
-                if ($unit === $unitNew) {
-                    return UnitOfWork::STATE_NEW;
-                }
-                if ($unit === $unitExisting) {
-                    return UnitOfWork::STATE_MANAGED;
-                }
-
-                return null;
+                return match ($unit) {
+                    $unitNew => UnitOfWork::STATE_NEW,
+                    $unitExisting => UnitOfWork::STATE_MANAGED,
+                    default => throw new \UnhandledMatchError(),
+                };
             });
 
         $item
@@ -103,8 +100,6 @@ final class CartChangesResetterTest extends TestCase
             ->method('refresh')
             ->willReturnCallback(function ($object) use ($item) {
                 self::assertTrue($object === $item || $object === $this->cart);
-
-                return null;
             });
 
         $this->cartChangesResetter->resetChanges($this->cart);

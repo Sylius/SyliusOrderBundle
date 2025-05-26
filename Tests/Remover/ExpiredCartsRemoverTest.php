@@ -17,6 +17,7 @@ use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\Bundle\OrderBundle\Remover\ExpiredCartsRemover;
+use Sylius\Bundle\OrderBundle\SyliusExpiredCartsEvents;
 use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\Component\Order\Remover\ExpiredCartsRemoverInterface;
 use Sylius\Component\Order\Repository\OrderRepositoryInterface;
@@ -101,7 +102,10 @@ final class ExpiredCartsRemoverTest extends TestCase
             ->expects(self::exactly(4))
             ->method('dispatch')
             ->willReturnCallback(function ($event, $eventName) {
-                self::assertContains($eventName, ['sylius.carts.pre_remove', 'sylius.carts.post_remove']);
+                self::assertContains(
+                    $eventName,
+                    [SyliusExpiredCartsEvents::PRE_REMOVE, SyliusExpiredCartsEvents::POST_REMOVE],
+                );
 
                 return $event;
             });
@@ -111,13 +115,9 @@ final class ExpiredCartsRemoverTest extends TestCase
             ->method('remove')
             ->with($this->isInstanceOf(OrderInterface::class));
 
-        $this->objectManager
-            ->expects(self::exactly(2))
-            ->method('flush');
+        $this->objectManager->expects(self::exactly(2))->method('flush');
 
-        $this->objectManager
-            ->expects(self::exactly(2))
-            ->method('clear');
+        $this->objectManager->expects(self::exactly(2))->method('clear');
 
         $this->expiredCartsRemover->remove();
     }
