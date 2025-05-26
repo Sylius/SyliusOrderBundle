@@ -25,76 +25,88 @@ use Sylius\Component\Order\Model\OrderItemUnitInterface;
 
 final class CartChangesResetterTest extends TestCase
 {
-    private EntityManagerInterface&MockObject $managerMock;
+    private EntityManagerInterface&MockObject $manager;
 
     private CartChangesResetter $cartChangesResetter;
 
-    private OrderInterface&MockObject $cart;
+    private MockObject&OrderInterface $cart;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->managerMock = $this->createMock(EntityManagerInterface::class);
-        $this->cartChangesResetter = new CartChangesResetter($this->managerMock);
+        $this->manager = $this->createMock(EntityManagerInterface::class);
+        $this->cartChangesResetter = new CartChangesResetter($this->manager);
         $this->cart = $this->createMock(OrderInterface::class);
     }
 
     public function testDoesNothingIfCartIsNotManaged(): void
     {
-        $this->managerMock->expects(self::once())
+        $this->manager->expects(self::once())
             ->method('contains')
             ->with($this->cart)
             ->willReturn(false);
 
-        $this->managerMock->expects(self::never())->method('refresh')->with($this->cart);
+        $this->manager->expects(self::never())->method('refresh')->with($this->cart);
 
         $this->cartChangesResetter->resetChanges($this->cart);
     }
 
     public function testResetsChangesForCartItemsAndUnits(): void
     {
-        $cart = $this->createMock(OrderInterface::class);
         $item = $this->createMock(OrderItemInterface::class);
         $unitNew = $this->createMock(OrderItemUnitInterface::class);
         $unitExisting = $this->createMock(OrderItemUnitInterface::class);
         $unitOfWork = $this->createMock(UnitOfWork::class);
 
-        $this->managerMock
+        $this->manager
+            ->expects(self::once())
             ->method('contains')
-            ->with($cart)
+            ->with($this->cart)
             ->willReturn(true);
 
-        $this->managerMock
+        $this->manager
+            ->expects(self::once())
             ->method('getUnitOfWork')
             ->willReturn($unitOfWork);
 
-        $cart
+        $this->cart
+            ->expects(self::once())
             ->method('getItems')
             ->willReturn(new ArrayCollection([$item]));
 
         $item
+            ->expects(self::once())
             ->method('getUnits')
             ->willReturn(new ArrayCollection([$unitNew, $unitExisting]));
 
         $unitOfWork
+            ->expects(self::exactly(2))
             ->method('getEntityState')
-            ->willReturnMap([
-                [$unitNew, UnitOfWork::STATE_NEW],
-                [$unitExisting, UnitOfWork::STATE_MANAGED],
-            ]);
+            ->willReturnCallback(function ($unit) use ($unitNew, $unitExisting) {
+                if ($unit === $unitNew) {
+                    return UnitOfWork::STATE_NEW;
+                }
+                if ($unit === $unitExisting) {
+                    return UnitOfWork::STATE_MANAGED;
+                }
+
+                return null;
+            });
 
         $item
             ->expects(self::once())
             ->method('removeUnit')
             ->with($unitNew);
 
-        $this->managerMock
+        $this->manager
             ->expects(self::exactly(2))
             ->method('refresh')
-            ->with($this->callback(function ($object) use ($item, $cart) {
-                return $object === $item || $object === $cart;
-            }));
+            ->willReturnCallback(function ($object) use ($item) {
+                self::assertTrue($object === $item || $object === $this->cart);
 
-        $this->cartChangesResetter->resetChanges($cart);
+                return null;
+            });
+
+        $this->cartChangesResetter->resetChanges($this->cart);
     }
 }

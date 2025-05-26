@@ -24,16 +24,15 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 final class ExpiredCartsRemoverTest extends TestCase
 {
-    /** @var OrderRepositoryInterface&MockObject */
-    private OrderRepositoryInterface $orderRepository;
+    private MockObject&OrderRepositoryInterface $orderRepository;
 
-    /** @var ObjectManager&MockObject */
-    private ObjectManager $objectManager;
+    private MockObject&ObjectManager $objectManager;
 
-    /** @var EventDispatcher&MockObject */
-    private EventDispatcher $eventDispatcher;
+    private EventDispatcher&MockObject $eventDispatcher;
 
     private ExpiredCartsRemover $expiredCartsRemover;
+
+    private MockObject&OrderInterface $cart;
 
     protected function setUp(): void
     {
@@ -47,6 +46,7 @@ final class ExpiredCartsRemoverTest extends TestCase
             $this->eventDispatcher,
             '2 months',
         );
+        $this->cart = $this->createMock(OrderInterface::class);
     }
 
     public function testImplementsAnExpiredCartsRemoverInterface(): void
@@ -56,22 +56,25 @@ final class ExpiredCartsRemoverTest extends TestCase
 
     public function testRemovesACartWhichHasBeenUpdatedBeforeConfiguredDate(): void
     {
-        $cart1 = $this->createMock(OrderInterface::class);
-        $cart2 = $this->createMock(OrderInterface::class);
+        $secondCart = $this->createMock(OrderInterface::class);
 
-        $this->orderRepository->expects(self::once())
+        $this->orderRepository
+            ->expects(self::exactly(2))
             ->method('findCartsNotModifiedSince')
             ->with($this->isInstanceOf('DateTimeInterface'), 100)
-            ->willReturn([$cart1, $cart2]);
+            ->willReturnOnConsecutiveCalls(
+                [$this->cart, $secondCart],
+                [],
+            );
 
         $removedCarts = [];
 
         $this->objectManager->expects(self::exactly(2))
             ->method('remove')
-            ->with($this->callback(function ($cart) use ($cart1, $cart2, &$removedCarts) {
+            ->with($this->callback(function ($cart) use ($secondCart, &$removedCarts) {
                 $removedCarts[] = $cart;
 
-                return in_array($cart, [$cart1, $cart2], true);
+                return in_array($cart, [$this->cart, $secondCart], true);
             }));
 
         $this->objectManager->expects(self::once())->method('flush');
@@ -79,34 +82,42 @@ final class ExpiredCartsRemoverTest extends TestCase
 
         $this->expiredCartsRemover->remove();
 
-        self::assertSame([$cart1, $cart2], $removedCarts);
+        self::assertSame([$this->cart, $secondCart], $removedCarts);
     }
 
     public function testRemovesCartsInBatches(): void
     {
-        /** @var OrderInterface&MockObject $cart */
-        $cart = $this->createMock(OrderInterface::class);
-
-        $this->orderRepository->expects(self::once())
+        $this->orderRepository
+            ->expects(self::exactly(3))
             ->method('findCartsNotModifiedSince')
             ->with($this->isInstanceOf('DateTimeInterface'), 100)
-            ->willReturn(
-                array_fill(0, 100, $cart),
-                array_fill(0, 100, $cart),
+            ->willReturnOnConsecutiveCalls(
+                array_fill(0, 100, $this->cart),
+                array_fill(0, 100, $this->cart),
                 [],
-            )
-        ;
-        $this->eventDispatcher->expects(self::exactly(2))->method('dispatch');
+            );
 
-        $this->objectManager->expects(self::exactly(200))
+        $this->eventDispatcher
+            ->expects(self::exactly(4))
+            ->method('dispatch')
+            ->willReturnCallback(function ($event, $eventName) {
+                self::assertContains($eventName, ['sylius.carts.pre_remove', 'sylius.carts.post_remove']);
+
+                return $event;
+            });
+
+        $this->objectManager
+            ->expects(self::exactly(200))
             ->method('remove')
             ->with($this->isInstanceOf(OrderInterface::class));
 
-        $this->objectManager->expects(self::exactly(2))->method('flush');
+        $this->objectManager
+            ->expects(self::exactly(2))
+            ->method('flush');
 
-        $this->objectManager->expects(self::exactly(2))->method('clear');
-
-        $this->eventDispatcher->expects(self::exactly(2))->method('dispatch');
+        $this->objectManager
+            ->expects(self::exactly(2))
+            ->method('clear');
 
         $this->expiredCartsRemover->remove();
     }
