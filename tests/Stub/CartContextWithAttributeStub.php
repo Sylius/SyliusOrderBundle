@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Sylius\Bundle\OrderBundle\Tests\Stub;
+namespace Tests\Sylius\Bundle\OrderBundle\Stub;
 
 use Sylius\Bundle\OrderBundle\Attribute\AsCartContext;
 use Sylius\Component\Order\Context\CartContextInterface;
