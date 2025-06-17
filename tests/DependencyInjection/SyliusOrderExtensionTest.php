@@ -11,19 +11,20 @@
 
 declare(strict_types=1);
 
-namespace Sylius\Bundle\OrderBundle\Tests\DependencyInjection;
+namespace Tests\Sylius\Bundle\OrderBundle\DependencyInjection;
 
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\AbstractExtensionTestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Sylius\Bundle\OrderBundle\DependencyInjection\Compiler\RegisterCartContextsPass;
 use Sylius\Bundle\OrderBundle\DependencyInjection\Compiler\RegisterProcessorsPass;
 use Sylius\Bundle\OrderBundle\DependencyInjection\SyliusOrderExtension;
-use Sylius\Bundle\OrderBundle\Tests\Stub\CartContextWithAttributeStub;
-use Sylius\Bundle\OrderBundle\Tests\Stub\OrderProcessorWithAttributeStub;
 use Symfony\Component\DependencyInjection\Definition;
+use Tests\Sylius\Bundle\OrderBundle\Stub\CartContextWithAttributeStub;
+use Tests\Sylius\Bundle\OrderBundle\Stub\OrderProcessorWithAttributeStub;
 
 final class SyliusOrderExtensionTest extends AbstractExtensionTestCase
 {
-    /** @test */
+    #[Test]
     public function it_autoconfigures_cart_context_with_attribute(): void
     {
         $this->container->setDefinition(
@@ -43,7 +44,7 @@ final class SyliusOrderExtensionTest extends AbstractExtensionTestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_autoconfigures_order_processors_with_attribute(): void
     {
         $this->container->setDefinition(
