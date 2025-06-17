@@ -6,5 +6,5 @@ sylius:
         product_variant:
             not_blank: 'La variante del prodotto non è stata fornita.'
         quantity:
-            min: 'La quantità di un articolo dell\'ordine non può essere inferiore a 1.'
+            min: 'La quantità di un articolo dell''ordine non può essere inferiore a 1.'
             not_blank: 'La quantità non è stata fornita.'
