@@ -32,6 +32,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
+/** @deprecated since Sylius 1.14 and will be removed in Sylius 2.0. */
 class OrderItemController extends ResourceController
 {
     public function addAction(Request $request): Response
