@@ -32,6 +32,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
+trigger_deprecation(
+    'sylius/order-bundle',
+    '1.14',
+    'The "%s" class is deprecated. Will be removed in Sylius 2.0.',
+    OrderItemController::class,
+);
 /** @deprecated since Sylius 1.14 and will be removed in Sylius 2.0. */
 class OrderItemController extends ResourceController
 {
