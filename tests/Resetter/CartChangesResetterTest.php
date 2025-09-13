@@ -82,7 +82,7 @@ final class CartChangesResetterTest extends TestCase
         $unitOfWork
             ->expects(self::exactly(2))
             ->method('getEntityState')
-            ->willReturnCallback(fn($unit) => match ($unit) {
+            ->willReturnCallback(fn ($unit) => match ($unit) {
                 $unitNew => UnitOfWork::STATE_NEW,
                 $unitExisting => UnitOfWork::STATE_MANAGED,
                 default => throw new \UnhandledMatchError(),
